@@ -21,3 +21,10 @@ management:
         include: health,info
 server:
   port: 8080
+
+app:
+  jwt:
+    # generate a long random string once: openssl rand -base64 48
+    secret: "change-me-to-a-long-random-secret-string"
+    access-exp-min: 30
+    refresh-exp-days: 7
