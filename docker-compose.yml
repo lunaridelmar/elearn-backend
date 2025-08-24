@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:16
+    container_name: elearn_db
+    environment:
+      POSTGRES_DB: elearn
+      POSTGRES_USER: elearn
+      POSTGRES_PASSWORD: elearn
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+volumes:
+  dbdata:
