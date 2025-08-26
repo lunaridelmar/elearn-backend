@@ -72,8 +72,9 @@ public class AuthController {
 
         String access = jwt.generateAccess(principal.getUsername(), claims);
         String refresh = jwt.generateRefresh(principal.getUsername());
+        long expiresIn = jwt.accessExpirySeconds();
 
-        return ResponseEntity.ok(new AuthResponse(access, refresh, "Bearer"));
+        return ResponseEntity.ok(new AuthResponse(access, refresh, expiresIn));
     }
 
     @PostMapping("/refresh")
@@ -87,8 +88,9 @@ public class AuthController {
             var roles = List.of(user.getRole().name());
             String newAccess = jwt.generateAccess(email, Map.of("roles", roles));
             String newRefresh = jwt.generateRefresh(email); // optional rotation
+            long expiresIn    = jwt.accessExpirySeconds();
 
-            return ResponseEntity.ok(new AuthResponse(newAccess, newRefresh));
+            return ResponseEntity.ok(new AuthResponse(newAccess, newRefresh, expiresIn));
         } catch (JwtException e) {
             return ResponseEntity.status(401).build();
         }
