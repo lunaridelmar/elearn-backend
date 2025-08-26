@@ -10,6 +10,7 @@ import com.ni.la.oa.elearn.repo.UserRepository;
 import com.ni.la.oa.elearn.security.JwtService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -70,4 +71,19 @@ public class AuthController {
         String newRefresh = jwt.generateRefresh(email);
         return ResponseEntity.ok(new AuthResponse(newAccess, newRefresh));
     }
+
+    @PreAuthorize("permitAll()")
+    @PostMapping("/register-teacher")
+    public ResponseEntity<?> registerTeacher(@Valid @RequestBody RegisterRequest req) {
+        if (users.existsByEmail(req.email())) {
+            return ResponseEntity.badRequest().body("Email already registered");
+        }
+        User u = new User();
+        u.setEmail(req.email().toLowerCase().trim());
+        u.setPasswordHash(encoder.encode(req.password()));
+        u.setRole(Role.TEACHER);
+        users.save(u);
+        return ResponseEntity.ok(new UserResponse(u.getId(), u.getEmail(), u.getRole().name()));
+    }
+
 }

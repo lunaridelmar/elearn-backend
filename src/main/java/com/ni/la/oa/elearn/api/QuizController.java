@@ -115,4 +115,42 @@ public class QuizController {
                 .toList();
     }
 
+    @PreAuthorize("hasRole('STUDENT')")
+    @GetMapping("/{quizId}/my-submissions")
+    @Transactional(readOnly = true)
+    public List<MySubmissionDto> mySubmissions(@PathVariable Long quizId, Authentication auth) {
+        String email = auth.getName();
+        var student = users.findByEmail(email).orElseThrow();
+
+        // 404 if quiz not found
+        quizzes.findById(quizId).orElseThrow();
+
+        return submissions.findByQuestion_Quiz_IdAndStudent_Id(quizId, student.getId())
+                .stream()
+                .map(s -> new MySubmissionDto(
+                        s.getQuestion().getId(),
+                        s.getAnswer(),
+                        s.isCorrect()))
+                .toList();
+    }
+
+    @PreAuthorize("hasRole('TEACHER')")
+    @GetMapping("/{quizId}/submissions")
+    @Transactional(readOnly = true)
+    public List<QuizSubmissionDto> allSubmissions(@PathVariable Long quizId) {
+        // 404 if quiz not found
+        quizzes.findById(quizId).orElseThrow();
+
+        return submissions.findByQuestion_Quiz_Id(quizId)
+                .stream()
+                .map(s -> new QuizSubmissionDto(
+                        s.getId(),
+                        s.getQuestion().getId(),
+                        s.getQuestion().getQuestion(),
+                        s.getStudent().getEmail(),
+                        s.getAnswer(),
+                        s.isCorrect()))
+                .toList();
+    }
+
 }

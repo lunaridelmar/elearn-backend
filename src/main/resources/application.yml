@@ -3,13 +3,18 @@ spring:
     url: jdbc:postgresql://localhost:5432/elearn
     username: elearn
     password: elearn
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     properties:
       hibernate.jdbc.time_zone: UTC
       hibernate.format_sql: true
     open-in-view: false
+    show-sql: true
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -25,6 +30,6 @@ server:
 app:
   jwt:
     # generate a long random string once: openssl rand -base64 48
-    secret: "change-me-to-a-long-random-secret-string"
+    secret: "tfAVyItWEHlPF7id8gibegE8yF/y1T7wcbWnyD4Pkjsq7SdZRCf9d1BDGINsMrrS"
     access-exp-min: 30
     refresh-exp-days: 7
