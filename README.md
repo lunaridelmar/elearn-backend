@@ -18,23 +18,30 @@ This is a personal project to refresh and demonstrate modern Java backend skills
 ## 📚 Features (current)
 
 * **Authentication**
-
-    * Register/login with encrypted password (BCrypt)
+    * Student registration (`POST /auth/register`)
+    * Teacher registration (`POST /auth/register-teacher`) — temporary, for testing/demo
+    * Login with encrypted password (BCrypt) → returns access + refresh tokens
+    * Refresh endpoint (`POST /auth/refresh`) → get new tokens without re-login
     * Role-based access (STUDENT vs TEACHER)
 
-* **Lessons & Courses**
 
-    * Courses have multiple lessons
+* **Lessons & Courses**
+    * A course contains multiple lessons
     * Lessons can include quizzes
+    * Quizzes can be created by teachers and answered by students
+    * Submissions are validated (question must belong to quiz, no duplicate submissions)
+
 
 * **Quizzes**
-
-    * `POST /quizzes` → create a quiz (TEACHER only)
-    * `GET /quizzes/{quizId}/questions` → list quiz questions (STUDENT/TEACHER)
-    * `POST /quizzes/{quizId}/submit` → student submits answers
-
-        * Validates that question belongs to quiz
-        * Prevents duplicate submissions
+    * Teachers can create quizzes and attach them to lessons
+        * `POST /quizzes` → create a quiz (TEACHER only)
+    * Students and teachers can view quiz questions
+        * `GET /quizzes/{quizId}/questions` → list quiz questions
+    * Students can submit answers
+        * `POST /quizzes/{quizId}/submit` → submit answers
+        * Validates that each question belongs to the quiz
+        * Prevents duplicate submissions per student/question
+    * Submissions are stored with correctness (true/false) for result tracking
 
 ---
 
@@ -63,9 +70,11 @@ Swagger UI available at:
 
 ## 🔑 Authentication Flow
 
-1. Register (`POST /auth/register`)
-2. Login (`POST /auth/login`) → get JWT token
-3. Authorize in Swagger (`Bearer <token>`)
+1. **Register student** → `POST /auth/register`
+2. **(Optional for testing)** Register teacher → `POST /auth/register-teacher`
+3. **Login** → `POST /auth/login` → returns access + refresh tokens
+4. **Authorize** in Swagger using `Bearer <accessToken>`
+5. **Refresh** → `POST /auth/refresh` → get new tokens when access token expires
 
 ---
 
@@ -135,15 +144,15 @@ Response:
 * **Day 2**: User registration with hashed password
 * **Day 3**: JWT security (roles: STUDENT/TEACHER), Lesson entity fix
 * **Day 4**: QuizController (create, list questions, submit with validation)
+* **Day 5**: Student submissions + quiz results
+* **Day 6**: JWT login with access + refresh tokens
+* **Day 7**: `/auth/refresh` endpoint and token expiry handling
 
 ---
 
 ## 🗺️ Roadmap (Next Steps)
 
-* **Day 5**: View student submissions and quiz results
-* **Day 6**: Track lesson/course progress per student
-* **Day 7**: Teacher dashboard (view class results, quiz statistics)
-* **Day 8**: Add refresh tokens & logout endpoint
+* **Day 8**: Teacher dashboard (view class results, quiz statistics)
 * **Day 9**: Unit + integration tests with Testcontainers
 * **Day 10**: CI/CD pipeline (GitHub Actions + Docker)
 

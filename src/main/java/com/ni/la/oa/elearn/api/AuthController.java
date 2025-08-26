@@ -5,6 +5,7 @@ import com.ni.la.oa.elearn.domain.Role;
 import com.ni.la.oa.elearn.domain.User;
 import com.ni.la.oa.elearn.repo.UserRepository;
 import com.ni.la.oa.elearn.security.JwtService;
+import io.jsonwebtoken.JwtException;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -75,13 +77,23 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refresh(@RequestBody Map<String, String> body) {
-        String refreshToken = body.get("refreshToken");
-        String email = jwt.subject(refreshToken);      // throws if invalid/expired
-        String newAccess = jwt.generateAccess(email, Map.of());
-        String newRefresh = jwt.generateRefresh(email);
-        return ResponseEntity.ok(new AuthResponse(newAccess, newRefresh));
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshRequest req) {
+        try {
+            var claims = jwt.parse(req.refreshToken()).getBody();
+            String email = claims.getSubject();
+            var user = users.findByEmail(email).orElseThrow();
+
+            // roles claim
+            var roles = List.of(user.getRole().name());
+            String newAccess = jwt.generateAccess(email, Map.of("roles", roles));
+            String newRefresh = jwt.generateRefresh(email); // optional rotation
+
+            return ResponseEntity.ok(new AuthResponse(newAccess, newRefresh));
+        } catch (JwtException e) {
+            return ResponseEntity.status(401).build();
+        }
     }
+
 
     // TODO now for testing purpose, add validation or remove
     @PreAuthorize("permitAll()")
