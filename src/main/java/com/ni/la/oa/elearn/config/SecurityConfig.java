@@ -48,7 +48,7 @@ public class SecurityConfig {
                         "/auth/register", "/auth/login", "/auth/refresh", "/auth/**").permitAll()
                 .anyRequest().authenticated()
         );
-        // disable Basic Auth (prevents browser popup)
+        // TODO disable Basic Auth (prevents browser popup)
         http.httpBasic(h -> h.disable());
 //        http.httpBasic(Customizer.withDefaults()); // optional; JWT handles auth
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

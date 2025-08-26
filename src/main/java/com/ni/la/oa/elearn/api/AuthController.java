@@ -1,9 +1,6 @@
 package com.ni.la.oa.elearn.api;
 
-import com.ni.la.oa.elearn.api.dto.AuthResponse;
-import com.ni.la.oa.elearn.api.dto.LoginRequest;
-import com.ni.la.oa.elearn.api.dto.RegisterRequest;
-import com.ni.la.oa.elearn.api.dto.UserResponse;
+import com.ni.la.oa.elearn.api.dto.*;
 import com.ni.la.oa.elearn.domain.Role;
 import com.ni.la.oa.elearn.domain.User;
 import com.ni.la.oa.elearn.repo.UserRepository;
@@ -55,12 +52,26 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest req) {
         Authentication auth = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(req.email().toLowerCase().trim(), req.password())
+                new UsernamePasswordAuthenticationToken(
+                        req.email().toLowerCase().trim(), req.password()
+                )
         );
-        UserDetails principal = (UserDetails) auth.getPrincipal();
-        String access = jwt.generateAccess(principal.getUsername(), Map.of("roles", principal.getAuthorities()));
+
+        var principal = (UserDetails) auth.getPrincipal();
+
+        // flatten authorities -> ["STUDENT"] or ["TEACHER", ...]
+        var roles = auth.getAuthorities().stream()
+                .map(a -> a.getAuthority())        // e.g. "ROLE_STUDENT"
+                .map(r -> r.startsWith("ROLE_") ? r.substring(5) : r) // -> "STUDENT"
+                .toList();
+
+        // minimal, portable claims
+        Map<String, Object> claims = Map.of("roles", roles);
+
+        String access = jwt.generateAccess(principal.getUsername(), claims);
         String refresh = jwt.generateRefresh(principal.getUsername());
-        return ResponseEntity.ok(new AuthResponse(access, refresh));
+
+        return ResponseEntity.ok(new AuthResponse(access, refresh, "Bearer"));
     }
 
     @PostMapping("/refresh")
@@ -72,6 +83,7 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(newAccess, newRefresh));
     }
 
+    // TODO now for testing purpose, add validation or remove
     @PreAuthorize("permitAll()")
     @PostMapping("/register-teacher")
     public ResponseEntity<?> registerTeacher(@Valid @RequestBody RegisterRequest req) {
