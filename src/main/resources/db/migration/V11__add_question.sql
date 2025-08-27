@@ -1,0 +1,19 @@
+CREATE TABLE IF NOT EXISTS quiz (
+    id BIGSERIAL PRIMARY KEY,
+    course_id BIGINT NOT NULL REFERENCES course(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS question (
+    id BIGSERIAL PRIMARY KEY,
+    quiz_id BIGINT NOT NULL REFERENCES quiz(id) ON DELETE CASCADE,
+    text VARCHAR(1000) NOT NULL,
+    correct_answer VARCHAR(255)
+);
+
+CREATE TABLE IF NOT EXISTS question_options (
+    question_id BIGINT NOT NULL REFERENCES question(id) ON DELETE CASCADE,
+    option_text VARCHAR(255) NOT NULL
+);

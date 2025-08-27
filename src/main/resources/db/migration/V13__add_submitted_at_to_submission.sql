@@ -1,0 +1,2 @@
+ALTER TABLE submission
+ADD COLUMN submitted_at TIMESTAMP NOT NULL DEFAULT NOW();
