@@ -6,10 +6,10 @@ import com.ni.la.oa.elearn.repo.*;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
@@ -77,6 +77,7 @@ public class QuizController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName(); // in our setup, username = email        User student = users.findByEmail(email).orElseThrow();
         User student = users.findByEmail(email).orElseThrow();
+
 
         Quiz quiz = quizzes.findById(quizId).orElseThrow();
         return reqs.stream().map(req -> {

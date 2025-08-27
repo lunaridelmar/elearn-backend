@@ -9,7 +9,6 @@ import com.ni.la.oa.elearn.repo.SubmissionRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,8 +34,11 @@ public class TeacherDashboardController {
     @GetMapping("/quizzes/{quizId}/stats")
     @Transactional(readOnly = true)
     public ResponseEntity<QuizStatsResponse> quizStats(@PathVariable Long quizId) {
-        Quiz quiz = quizzes.findById(quizId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found"));
-
+        var quizOpt = quizzes.findById(quizId);
+        if (quizOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        Quiz quiz = quizOpt.get();
 
         long totalSubmissions = submissions.countByQuestion_Quiz_Id(quizId);
         long studentsAttempted = submissions.countDistinctStudentsByQuizId(quizId);
