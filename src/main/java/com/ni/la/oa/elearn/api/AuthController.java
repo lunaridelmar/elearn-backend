@@ -1,6 +1,6 @@
 package com.ni.la.oa.elearn.api;
 
-import com.ni.la.oa.elearn.api.dto.*;
+import com.ni.la.oa.elearn.api.dto.auth.*;
 import com.ni.la.oa.elearn.domain.RefreshToken;
 import com.ni.la.oa.elearn.domain.Role;
 import com.ni.la.oa.elearn.domain.User;

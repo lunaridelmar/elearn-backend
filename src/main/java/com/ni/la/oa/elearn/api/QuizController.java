@@ -1,6 +1,6 @@
 package com.ni.la.oa.elearn.api;
 
-import com.ni.la.oa.elearn.api.dto.*;
+import com.ni.la.oa.elearn.api.dto.cource.*;
 import com.ni.la.oa.elearn.domain.*;
 import com.ni.la.oa.elearn.repo.*;
 import jakarta.validation.Valid;

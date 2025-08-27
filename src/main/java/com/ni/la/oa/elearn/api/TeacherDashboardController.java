@@ -1,8 +1,8 @@
 package com.ni.la.oa.elearn.api;
 
-import com.ni.la.oa.elearn.api.dto.QuestionStatDto;
-import com.ni.la.oa.elearn.api.dto.QuizStatsResponse;
-import com.ni.la.oa.elearn.api.dto.StudentScoreDto;
+import com.ni.la.oa.elearn.api.dto.cource.QuestionStatDto;
+import com.ni.la.oa.elearn.api.dto.cource.QuizStatsResponse;
+import com.ni.la.oa.elearn.api.dto.cource.StudentScoreDto;
 import com.ni.la.oa.elearn.domain.Quiz;
 import com.ni.la.oa.elearn.repo.QuizRepository;
 import com.ni.la.oa.elearn.repo.SubmissionRepository;
@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 

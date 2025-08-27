@@ -1,7 +1,7 @@
 package com.ni.la.oa.elearn.api;
 
-import com.ni.la.oa.elearn.api.dto.LessonProgressResponse;
-import com.ni.la.oa.elearn.api.dto.LessonResponse;
+import com.ni.la.oa.elearn.api.dto.cource.LessonProgressResponse;
+import com.ni.la.oa.elearn.api.dto.cource.LessonResponse;
 import com.ni.la.oa.elearn.domain.Lesson;
 import com.ni.la.oa.elearn.domain.LessonProgress;
 import com.ni.la.oa.elearn.domain.User;

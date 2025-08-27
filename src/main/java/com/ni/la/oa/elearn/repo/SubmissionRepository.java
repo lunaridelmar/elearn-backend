@@ -1,7 +1,7 @@
 package com.ni.la.oa.elearn.repo;
 
-import com.ni.la.oa.elearn.api.dto.QuestionStatDto;
-import com.ni.la.oa.elearn.api.dto.StudentScoreDto;
+import com.ni.la.oa.elearn.api.dto.cource.QuestionStatDto;
+import com.ni.la.oa.elearn.api.dto.cource.StudentScoreDto;
 import com.ni.la.oa.elearn.domain.Submission;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

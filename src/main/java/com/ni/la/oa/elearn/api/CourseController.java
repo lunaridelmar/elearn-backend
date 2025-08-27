@@ -1,6 +1,9 @@
 package com.ni.la.oa.elearn.api;
 
-import com.ni.la.oa.elearn.api.dto.*;
+import com.ni.la.oa.elearn.api.dto.cource.CourseRequest;
+import com.ni.la.oa.elearn.api.dto.cource.CourseResponse;
+import com.ni.la.oa.elearn.api.dto.cource.LessonRequest;
+import com.ni.la.oa.elearn.api.dto.cource.LessonResponse;
 import com.ni.la.oa.elearn.domain.Course;
 import com.ni.la.oa.elearn.domain.Lesson;
 import com.ni.la.oa.elearn.repo.CourseRepository;
