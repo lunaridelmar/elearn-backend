@@ -8,43 +8,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * Generic wrapper for all API responses.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(name = "ApiResponse", description = "Generic wrapper for all API responses")
-public class ApiResponse<T> {
-    @Schema(description = "Payload returned on success")
-    private T data;
-
-    @Schema(description = "Error details when the request is not successful")
-    private ApiError error;
-
-    public ApiResponse() {
-    }
-
-    public ApiResponse(T data, ApiError error) {
-        this.data = data;
-        this.error = error;
-    }
-
+@Schema(description = "Generic wrapper for API responses")
+public record ApiResponse<T>(
+        @Schema(description = "Payload returned on success") T data,
+        @Schema(description = "Error details when the request is not successful") ApiError error
+) {
     public static <T> ApiResponse<T> success(T data) {
         return new ApiResponse<>(data, null);
     }
 
     public static <T> ApiResponse<T> error(ApiError error) {
         return new ApiResponse<>(null, error);
-    }
-
-    public T getData() {
-        return data;
-    }
-
-    public void setData(T data) {
-        this.data = data;
-    }
-
-    public ApiError getError() {
-        return error;
-    }
-
-    public void setError(ApiError error) {
-        this.error = error;
     }
 }
