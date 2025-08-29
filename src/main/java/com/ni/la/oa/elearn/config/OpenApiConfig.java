@@ -2,13 +2,22 @@ package com.ni.la.oa.elearn.config;
 
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.OpenAPI;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import jakarta.annotation.PostConstruct;
+import org.springdoc.core.utils.SpringDocUtils;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.ni.la.oa.elearn.api.dto.ApiResponse;
 
 @Configuration
 public class OpenApiConfig {
+
+    @PostConstruct
+    public void configure() {
+        SpringDocUtils.getConfig().addResponseWrapperToIgnore(ApiResponse.class);
+    }
 
     @Bean
     public OpenAPI api() {
