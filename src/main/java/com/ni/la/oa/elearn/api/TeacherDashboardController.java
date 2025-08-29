@@ -1,5 +1,6 @@
 package com.ni.la.oa.elearn.api;
 
+import com.ni.la.oa.elearn.api.dto.ApiResponse;
 import com.ni.la.oa.elearn.api.dto.cource.QuestionStatDto;
 import com.ni.la.oa.elearn.api.dto.cource.QuizStatsResponse;
 import com.ni.la.oa.elearn.api.dto.cource.StudentScoreDto;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -32,12 +34,9 @@ public class TeacherDashboardController {
     @PreAuthorize("hasRole('TEACHER')")
     @GetMapping("/quizzes/{quizId}/stats")
     @Transactional(readOnly = true)
-    public ResponseEntity<QuizStatsResponse> quizStats(@PathVariable Long quizId) {
-        var quizOpt = quizzes.findById(quizId);
-        if (quizOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        Quiz quiz = quizOpt.get();
+    public ResponseEntity<ApiResponse<QuizStatsResponse>> quizStats(@PathVariable Long quizId) {
+        Quiz quiz = quizzes.findById(quizId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found"));
 
         long totalSubmissions = submissions.countByQuestion_Quiz_Id(quizId);
         long studentsAttempted = submissions.countDistinctStudentsByQuizId(quizId);
@@ -78,6 +77,6 @@ public class TeacherDashboardController {
                 perQuestion,
                 leaderboard
         );
-        return ResponseEntity.ok(body);
+        return ResponseEntity.ok(ApiResponse.success(body));
     }
 }
