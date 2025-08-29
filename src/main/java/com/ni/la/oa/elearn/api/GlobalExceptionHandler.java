@@ -14,7 +14,7 @@ public class GlobalExceptionHandler {
 
     // Handle explicit ResponseStatusException
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ApiResponse<?>> handleResponseStatus(ResponseStatusException ex) {
+    public ResponseEntity<ApiResponse<ApiError>> handleResponseStatus(ResponseStatusException ex) {
         ApiError error = new ApiError(
                 ex.getStatusCode().toString(),
                 ex.getReason() != null ? ex.getReason() : "Unexpected error"
@@ -26,7 +26,7 @@ public class GlobalExceptionHandler {
 
     // Handle validation errors (@Valid on DTOs)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<?>> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<ApiError>> handleValidation(MethodArgumentNotValidException ex) {
         String message = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
         ApiError error = new ApiError("VALIDATION_ERROR", message);
         return ResponseEntity.badRequest().body(ApiResponse.error(error));
@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
 
     // Fallback handler for unexpected exceptions
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<?>> handleGeneric(Exception ex) {
+    public ResponseEntity<ApiResponse<ApiError>> handleGeneric(Exception ex) {
         ApiError error = new ApiError("INTERNAL_ERROR", ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(error));
     }
