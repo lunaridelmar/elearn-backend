@@ -1,15 +1,18 @@
 package com.ni.la.oa.elearn.api;
 
+import com.ni.la.oa.elearn.api.dto.ApiResponse;
 import com.ni.la.oa.elearn.api.dto.cource.*;
 import com.ni.la.oa.elearn.domain.*;
 import com.ni.la.oa.elearn.repo.*;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
 import java.util.List;
@@ -38,8 +41,9 @@ public class QuizController {
     @PreAuthorize("hasRole('TEACHER')")
     @PostMapping
     @Transactional
-    public ResponseEntity<QuizResponse> create(@RequestBody QuizRequest req) {
-        Lesson lesson = lessons.findById(req.lessonId()).orElseThrow();
+    public ResponseEntity<ApiResponse<QuizResponse>> create(@RequestBody QuizRequest req) {
+        Lesson lesson = lessons.findById(req.lessonId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lesson not found"));
         Quiz q = new Quiz();
         q.setTitle(req.title());
         q.setLesson(lesson);
@@ -64,28 +68,30 @@ public class QuizController {
 
         return ResponseEntity
                 .created(URI.create("/quizzes/" + q.getId()))
-                .body(body);
+                .body(ApiResponse.success(body));
     }
 
     // STUDENT: submit answer
     @PreAuthorize("hasRole('STUDENT')")
     @PostMapping("/{quizId}/submit")
     @Transactional
-    public List<SubmissionResponse> submit(@PathVariable Long quizId,
+    public ResponseEntity<ApiResponse<List<SubmissionResponse>>> submit(@PathVariable Long quizId,
                                            @Valid @RequestBody List<SubmissionRequest> reqs) {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName(); // in our setup, username = email        User student = users.findByEmail(email).orElseThrow();
-        User student = users.findByEmail(email).orElseThrow();
+        String email = auth.getName(); // in our setup, username = email
+        User student = users.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-
-        Quiz quiz = quizzes.findById(quizId).orElseThrow();
-        return reqs.stream().map(req -> {
+        Quiz quiz = quizzes.findById(quizId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found"));
+        List<SubmissionResponse> result = reqs.stream().map(req -> {
             if (req.questionId() == null)
                 throw new IllegalArgumentException("questionId is required");
             if (req.answer() == null)
                 throw new IllegalArgumentException("answer is required");
-            QuizQuestion q = questions.findById(req.questionId()).orElseThrow();
+            QuizQuestion q = questions.findById(req.questionId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Question not found"));
             if (!q.getQuiz().getId().equals(quiz.getId())) {
                 throw new IllegalArgumentException("Question does not belong to this quiz");
             }
@@ -102,47 +108,51 @@ public class QuizController {
             submissions.save(sub);
             return new SubmissionResponse(sub.getId(), q.getId(), correct);
         }).toList();
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     @PreAuthorize("hasAnyRole('STUDENT','TEACHER')")
     @GetMapping("/{quizId}/questions")
     @Transactional(readOnly = true) // optional safety
-    public List<QuestionDto> getQuestions(@PathVariable Long quizId) {
-        // 404 if quiz not found
-        quizzes.findById(quizId).orElseThrow();
+    public ResponseEntity<ApiResponse<List<QuestionDto>>> getQuestions(@PathVariable Long quizId) {
+        quizzes.findById(quizId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found"));
 
-        return questions.findByQuiz_Id(quizId).stream()
+        List<QuestionDto> list = questions.findByQuiz_Id(quizId).stream()
                 .map(q -> new QuestionDto(q.getId(), q.getQuestion()))
                 .toList();
+        return ResponseEntity.ok(ApiResponse.success(list));
     }
 
     @PreAuthorize("hasRole('STUDENT')")
     @GetMapping("/{quizId}/my-submissions")
     @Transactional(readOnly = true)
-    public List<MySubmissionDto> mySubmissions(@PathVariable Long quizId, Authentication auth) {
+    public ResponseEntity<ApiResponse<List<MySubmissionDto>>> mySubmissions(@PathVariable Long quizId, Authentication auth) {
         String email = auth.getName();
-        var student = users.findByEmail(email).orElseThrow();
+        var student = users.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        // 404 if quiz not found
-        quizzes.findById(quizId).orElseThrow();
+        quizzes.findById(quizId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found"));
 
-        return submissions.findByQuestion_Quiz_IdAndStudent_Id(quizId, student.getId())
+        List<MySubmissionDto> list = submissions.findByQuestion_Quiz_IdAndStudent_Id(quizId, student.getId())
                 .stream()
                 .map(s -> new MySubmissionDto(
                         s.getQuestion().getId(),
                         s.getAnswer(),
                         s.isCorrect()))
                 .toList();
+        return ResponseEntity.ok(ApiResponse.success(list));
     }
 
     @PreAuthorize("hasRole('TEACHER')")
     @GetMapping("/{quizId}/submissions")
     @Transactional(readOnly = true)
-    public List<QuizSubmissionDto> allSubmissions(@PathVariable Long quizId) {
-        // 404 if quiz not found
-        quizzes.findById(quizId).orElseThrow();
+    public ResponseEntity<ApiResponse<List<QuizSubmissionDto>>> allSubmissions(@PathVariable Long quizId) {
+        quizzes.findById(quizId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found"));
 
-        return submissions.findByQuestion_Quiz_Id(quizId)
+        List<QuizSubmissionDto> list = submissions.findByQuestion_Quiz_Id(quizId)
                 .stream()
                 .map(s -> new QuizSubmissionDto(
                         s.getId(),
@@ -152,6 +162,7 @@ public class QuizController {
                         s.getAnswer(),
                         s.isCorrect()))
                 .toList();
+        return ResponseEntity.ok(ApiResponse.success(list));
     }
 
 }

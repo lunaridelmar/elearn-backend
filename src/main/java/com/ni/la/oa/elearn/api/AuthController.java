@@ -1,6 +1,8 @@
 package com.ni.la.oa.elearn.api;
 
+import com.ni.la.oa.elearn.api.dto.ApiResponse;
 import com.ni.la.oa.elearn.api.dto.auth.*;
+import com.ni.la.oa.elearn.api.dto.error.ApiError;
 import com.ni.la.oa.elearn.domain.RefreshToken;
 import com.ni.la.oa.elearn.domain.Role;
 import com.ni.la.oa.elearn.domain.User;
@@ -10,6 +12,7 @@ import com.ni.la.oa.elearn.security.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -50,20 +53,24 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest req) {
+    public ResponseEntity<ApiResponse<UserResponse>> register(@Valid @RequestBody RegisterRequest req) {
         if (users.existsByEmail(req.email())) {
-            return ResponseEntity.badRequest().body("Email already registered");
+            return ResponseEntity.badRequest().body(
+                    ApiResponse.error(new ApiError("EMAIL_EXISTS", "Email already registered"))
+            );
         }
         User u = new User();
         u.setEmail(req.email().toLowerCase().trim());
         u.setPasswordHash(encoder.encode(req.password()));
         u.setRole(Role.STUDENT);
         users.save(u);
-        return ResponseEntity.ok(new UserResponse(u.getId(), u.getEmail(), u.getRole().name()));
+        return ResponseEntity.ok(ApiResponse.success(
+                new UserResponse(u.getId(), u.getEmail(), u.getRole().name()))
+        );
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest req) {
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest req) {
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         req.email().toLowerCase().trim(),
@@ -96,12 +103,12 @@ public class AuthController {
         Instant accessExp = jwt.parse(access).getBody().getExpiration().toInstant();
         long expiresIn = Math.max(0, Duration.between(Instant.now(), accessExp).toSeconds());
 
-        return ResponseEntity.ok(new AuthResponse(access, refresh, expiresIn));
+        return ResponseEntity.ok(ApiResponse.success(new AuthResponse(access, refresh, expiresIn)));
     }
 
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshRequest req) {
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(@Valid @RequestBody RefreshRequest req) {
         try {
             Jws<Claims> jws = jwt.parse(req.refreshToken()); // throws if invalid/expired signature
             String email = jws.getBody().getSubject();
@@ -131,9 +138,10 @@ public class AuthController {
             Instant accessExp = jwt.parse(newAccess).getBody().getExpiration().toInstant();
             long expiresIn = Math.max(0, Duration.between(Instant.now(), accessExp).toSeconds());
 
-            return ResponseEntity.ok(new AuthResponse(newAccess, newRefresh, expiresIn));
+            return ResponseEntity.ok(ApiResponse.success(new AuthResponse(newAccess, newRefresh, expiresIn)));
         } catch (Exception ex) {
-            return ResponseEntity.status(401).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error(new ApiError("INVALID_TOKEN", "Invalid refresh token")));
         }
     }
 
@@ -142,21 +150,25 @@ public class AuthController {
     // TODO now for testing purpose, add validation or remove
     @PreAuthorize("permitAll()")
     @PostMapping("/register-teacher")
-    public ResponseEntity<?> registerTeacher(@Valid @RequestBody RegisterRequest req) {
+    public ResponseEntity<ApiResponse<UserResponse>> registerTeacher(@Valid @RequestBody RegisterRequest req) {
         if (users.existsByEmail(req.email())) {
-            return ResponseEntity.badRequest().body("Email already registered");
+            return ResponseEntity.badRequest().body(
+                    ApiResponse.error(new ApiError("EMAIL_EXISTS", "Email already registered"))
+            );
         }
         User u = new User();
         u.setEmail(req.email().toLowerCase().trim());
         u.setPasswordHash(encoder.encode(req.password()));
         u.setRole(Role.TEACHER);
         users.save(u);
-        return ResponseEntity.ok(new UserResponse(u.getId(), u.getEmail(), u.getRole().name()));
+        return ResponseEntity.ok(ApiResponse.success(
+                new UserResponse(u.getId(), u.getEmail(), u.getRole().name()))
+        );
     }
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/logout")
-    public ResponseEntity<LogoutResponse> logout(@RequestBody LogoutRequest req, Authentication auth) {
+    public ResponseEntity<ApiResponse<LogoutResponse>> logout(@RequestBody LogoutRequest req, Authentication auth) {
         // Option A: revoke only the provided refresh token
         if (req != null && req.refreshToken() != null && !req.refreshToken().isBlank()) {
             refreshTokens.findByToken(req.refreshToken()).ifPresent(rt -> {
@@ -169,7 +181,7 @@ public class AuthController {
                     .filter(rt -> rt.getUser().getId().equals(me.getId()) && !rt.isRevoked())
                     .forEach(rt -> { rt.setRevoked(true); refreshTokens.save(rt); });
         }
-        return ResponseEntity.ok(new LogoutResponse("Logged out. Refresh token revoked."));
+        return ResponseEntity.ok(ApiResponse.success(new LogoutResponse("Logged out. Refresh token revoked.")));
     }
 
     //Frontend notes (how to use)

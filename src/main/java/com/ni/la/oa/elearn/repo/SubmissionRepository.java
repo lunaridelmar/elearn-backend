@@ -18,10 +18,10 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
         from Submission s
         where s.question.quiz.id = :quizId
     """)
-    long countDistinctStudentsByQuizId(Long quizId);
+    long countDistinctStudentsByQuizId(@Param("quizId") Long quizId);
 
     @Query("""
-    select new com.ni.la.oa.elearn.api.dto.QuestionStatDto(
+    select new com.ni.la.oa.elearn.api.dto.cource.QuestionStatDto(
         s.question.id,
         count(s),
         sum(case when s.correct = true then 1 else 0 end),
@@ -36,7 +36,7 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
 
 
     @Query("""
-    select new com.ni.la.oa.elearn.api.dto.StudentScoreDto(
+    select new com.ni.la.oa.elearn.api.dto.cource.StudentScoreDto(
         s.student.id,
         s.student.email,
         sum(case when s.correct = true then 1 else 0 end),
