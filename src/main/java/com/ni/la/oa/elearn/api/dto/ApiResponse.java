@@ -28,7 +28,7 @@ public class ApiResponse<T> {
         return new ApiResponse<>(data, null);
     }
 
-    public static ApiResponse<Void> error(ApiError error) {
+    public static <T> ApiResponse<T> error(ApiError error) {
         return new ApiResponse<>(null, error);
     }
 
