@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * Generic wrapper for all API responses.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(name = "ApiResponse", description = "Generic wrapper for all API responses")
 public class ApiResponse<T> {
     @Schema(description = "Payload returned on success")
     private T data;
